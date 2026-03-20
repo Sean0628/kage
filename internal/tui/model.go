@@ -7,9 +7,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/shoito/kage/internal/config"
-	"github.com/shoito/kage/internal/project"
-	"github.com/shoito/kage/internal/worktree"
+	"github.com/Sean0628/kage/internal/config"
+	"github.com/Sean0628/kage/internal/project"
+	"github.com/Sean0628/kage/internal/worktree"
 )
 
 // Mode represents the current TUI mode.

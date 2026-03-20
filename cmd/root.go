@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/shoito/kage/internal/config"
-	"github.com/shoito/kage/internal/tmux"
+	"github.com/Sean0628/kage/internal/config"
+	"github.com/Sean0628/kage/internal/tmux"
 	"github.com/spf13/cobra"
 )
 

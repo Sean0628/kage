@@ -3,9 +3,9 @@ package project
 import (
 	"fmt"
 
-	"github.com/shoito/kage/internal/config"
-	"github.com/shoito/kage/internal/tmux"
-	"github.com/shoito/kage/internal/worktree"
+	"github.com/Sean0628/kage/internal/config"
+	"github.com/Sean0628/kage/internal/tmux"
+	"github.com/Sean0628/kage/internal/worktree"
 )
 
 // FeatureStatus represents the state of a feature branch.
