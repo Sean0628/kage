@@ -1,7 +1,7 @@
 # kage (影)
 
 [![CI](https://github.com/Sean0628/kage/actions/workflows/ci.yml/badge.svg)](https://github.com/Sean0628/kage/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sean0628/kage/blob/main/LICENSE.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sean0628/kage/blob/main/LICENSE)
 
 A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 
@@ -190,10 +190,10 @@ Projects without a `layout` key inherit from `defaults`.
 ## Development
 
 ```bash
-go build -o bin/kage .   # build
+go build -o bin/kage .    # build
 go test ./...             # run all tests
 go vet ./...              # lint
 ```
 
 ## Copyright
-Copyright (c) 2026 Sho Ito. See [LICENSE.md](https://github.com/Sean0628/kage/blob/main/LICENSE.md) for further details.
+Copyright (c) 2026 Sho Ito. See [LICENSE.md](https://github.com/Sean0628/kage/blob/main/LICENSE) for further details.
