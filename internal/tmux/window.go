@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shoito/kage/internal/config"
+	"github.com/Sean0628/kage/internal/config"
 )
 
 // WindowInfo represents a tmux window.

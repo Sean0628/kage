@@ -62,13 +62,13 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 ## Installation
 
 ```bash
-go install github.com/shoito/kage@latest
+go install github.com/Sean0628/kage@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/shoito/kage.git
+git clone https://github.com/Sean0628/kage.git
 cd kage
 go build -o bin/kage .
 ```
