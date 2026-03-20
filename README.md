@@ -195,6 +195,5 @@ go test ./...             # run all tests
 go vet ./...              # lint
 ```
 
-## License
-
-MIT
+## Copyright
+Copyright (c) 2026 Sho Ito. See [LICENSE.md](https://github.com/Sean0628/kage/blob/main/LICENSE.md) for further details.
