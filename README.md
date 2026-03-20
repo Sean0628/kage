@@ -1,6 +1,7 @@
 # kage (影)
 
-[![CI](https://github.com/shoito/kage/actions/workflows/ci.yml/badge.svg)](https://github.com/shoito/kage/actions/workflows/ci.yml)
+[![CI](https://github.com/Sean0628/kage/actions/workflows/ci.yml/badge.svg)](https://github.com/Sean0628/kage/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sean0628/kage/blob/main/LICENSE.md)
 
 A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 
