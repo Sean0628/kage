@@ -115,10 +115,11 @@ type Defaults struct {
 }
 
 type Config struct {
-	Workspace   string    `yaml:"workspace,omitempty"`
-	Coordinator bool      `yaml:"coordinator,omitempty"`
-	Defaults    Defaults  `yaml:"defaults"`
-	Projects    []Project `yaml:"projects"`
+	Workspace      string    `yaml:"workspace,omitempty"`
+	Coordinator    bool      `yaml:"coordinator,omitempty"`
+	CoordinatorCmd string    `yaml:"coordinator_cmd,omitempty"`
+	Defaults       Defaults  `yaml:"defaults"`
+	Projects       []Project `yaml:"projects"`
 }
 
 var DefaultLayout = &LayoutNode{

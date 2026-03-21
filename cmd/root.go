@@ -61,7 +61,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		}
 		// Split dashboard and launch coordinator Claude Code (if enabled)
 		if cfg.Coordinator {
-			setupCoordinatorPane(cfg.EffectiveWorkspace())
+			setupCoordinatorPane(cfg)
 		}
 		// Attach (replaces this process)
 		return tmux.AttachSession()
@@ -81,7 +81,7 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		}
 		// Split dashboard and launch coordinator Claude Code (if enabled)
 		if cfg.Coordinator {
-			setupCoordinatorPane(cfg.EffectiveWorkspace())
+			setupCoordinatorPane(cfg)
 		}
 		return tmux.SwitchClient()
 
@@ -102,27 +102,79 @@ func registerDashboardKeybinding() {
 		"select-window", "-t", tmux.SessionName+":dashboard")
 }
 
-// setupCoordinatorPane splits the dashboard window and launches Claude Code
-// with the kage MCP server configured in the right pane.
-func setupCoordinatorPane(workDir string) {
-	mcpConfigPath, err := ensureMCPConfig()
+// setupCoordinatorPane splits the dashboard window and launches the coordinator
+// agent in the right pane. Supports claude (default) and codex with automatic
+// MCP wiring. Other agents are launched as-is.
+func setupCoordinatorPane(cfg *config.Config) {
+	agentCmd := cfg.CoordinatorCmd
+	if agentCmd == "" {
+		agentCmd = "claude"
+	}
+
+	coordinatorCmd, err := buildCoordinatorCmd(agentCmd)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "kage: failed to write MCP config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "kage: failed to set up coordinator: %v\n", err)
 		return
 	}
 
 	// Split dashboard window: left = TUI, right = coordinator
-	// Use SplitWindowWithCmd to run claude directly, avoiding the race condition
+	// Use SplitWindowWithCmd to run the agent directly, avoiding the race condition
 	// where SendKeys fires before the shell in the new pane is ready.
 	target := tmux.SessionName + ":dashboard"
-	claudeCmd := fmt.Sprintf("claude --mcp-config %s", mcpConfigPath)
-	if err := tmux.SplitWindowWithCmd(target, false, "50", workDir, claudeCmd); err != nil {
+	if err := tmux.SplitWindowWithCmd(target, false, "50", cfg.EffectiveWorkspace(), coordinatorCmd); err != nil {
 		fmt.Fprintf(os.Stderr, "kage: failed to split dashboard for coordinator: %v\n", err)
 		return
 	}
 
 	// Select the left pane (TUI) as active
 	tmux.RunSilent("select-pane", "-t", target+".0")
+}
+
+// buildCoordinatorCmd returns the shell command to launch the coordinator agent
+// with MCP wired appropriately for the agent type.
+func buildCoordinatorCmd(agentCmd string) (string, error) {
+	kageBin := resolveKageBin()
+
+	switch agentCmd {
+	case "claude":
+		mcpConfigPath, err := ensureClaudeMCPConfig(kageBin)
+		if err != nil {
+			return "", fmt.Errorf("writing claude MCP config: %w", err)
+		}
+		return fmt.Sprintf("claude --mcp-config %s", mcpConfigPath), nil
+
+	case "codex":
+		// Register kage MCP server with codex, then launch codex
+		if err := registerCodexMCP(kageBin); err != nil {
+			return "", fmt.Errorf("registering codex MCP server: %w", err)
+		}
+		return "codex", nil
+
+	default:
+		// Custom command — launch as-is
+		return agentCmd, nil
+	}
+}
+
+// resolveKageBin returns the absolute path to the kage binary.
+func resolveKageBin() string {
+	kageBin, err := exec.LookPath("kage")
+	if err != nil {
+		return "kage"
+	}
+	return kageBin
+}
+
+// registerCodexMCP registers the kage MCP server with codex via `codex mcp add`.
+// It removes any existing registration first to ensure a clean state.
+func registerCodexMCP(kageBin string) error {
+	// Remove existing registration (ignore errors if it doesn't exist)
+	exec.Command("codex", "mcp", "remove", "kage").Run()
+
+	// Register kage MCP server
+	cmd := exec.Command("codex", "mcp", "add", "kage", "--", kageBin, "mcp")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // mcpConfig is the structure for Claude Code's MCP configuration file.
@@ -135,15 +187,9 @@ type mcpServerEntry struct {
 	Args    []string `json:"args"`
 }
 
-// ensureMCPConfig writes the kage MCP server config to ~/.config/kage/mcp.json
-// and returns the path.
-func ensureMCPConfig() (string, error) {
-	kageBin, err := exec.LookPath("kage")
-	if err != nil {
-		// Fall back to just "kage" if not found in PATH
-		kageBin = "kage"
-	}
-
+// ensureClaudeMCPConfig writes the kage MCP server config to ~/.config/kage/mcp.json
+// and returns the path. This file format is specific to Claude Code's --mcp-config flag.
+func ensureClaudeMCPConfig(kageBin string) (string, error) {
 	cfg := mcpConfig{
 		MCPServers: map[string]mcpServerEntry{
 			"kage": {

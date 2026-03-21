@@ -182,11 +182,27 @@ Projects without a `layout` key inherit from `defaults`.
 
 #### Coordinator Mode
 
-When `coordinator: true` is set, kage splits the dashboard window and launches a Claude Code instance with the kage MCP server pre-configured. This coordinator can orchestrate work across all feature agents — listing projects, sending messages, capturing output, and checking agent status.
+When `coordinator: true` is set, kage splits the dashboard window and launches a coordinator agent with the kage MCP server pre-configured. The coordinator can orchestrate work across all feature agents — listing projects, sending messages, capturing output, and checking agent status.
 
 ```yaml
 coordinator: true
 ```
+
+By default this uses Claude Code. You can switch to Codex CLI or any other agent:
+
+```yaml
+coordinator: true
+coordinator_cmd: codex    # uses `codex mcp add` to wire kage MCP automatically
+```
+
+```yaml
+coordinator: true
+coordinator_cmd: my-agent  # custom agent — launched as-is, no automatic MCP wiring
+```
+
+Supported agents with automatic MCP wiring:
+- **claude** (default) — uses `--mcp-config` flag
+- **codex** — uses `codex mcp add` to register the kage MCP server
 
 This is disabled by default.
 
