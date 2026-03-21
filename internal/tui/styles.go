@@ -43,4 +43,8 @@ var (
 
 	promptStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("214"))
+
+	guideHeaderStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("39"))
 )
