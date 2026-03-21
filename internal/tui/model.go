@@ -20,6 +20,7 @@ const (
 	ModeNewBranch
 	ModeConfirmDelete
 	ModeAttachBranch
+	ModeHelp
 )
 
 // Model is the bubbletea model for the dashboard.
@@ -124,6 +125,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateConfirmDelete(msg)
 		case ModeAttachBranch:
 			return m.updateAttachBranch(msg)
+		case ModeHelp:
+			m.mode = ModeNormal
+			return m, nil
 		default:
 			return m.updateNormal(msg)
 		}
@@ -195,6 +199,9 @@ func (m Model) updateNormal(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case msg.String() == "r":
 		return m, refresh(m.cfg)
+
+	case msg.String() == "h":
+		m.mode = ModeHelp
 	}
 
 	return m, nil
@@ -392,9 +399,12 @@ func (m Model) View() string {
 			b.WriteString(helpStyle.Render("  [↑/↓] navigate  [Enter] select  [Esc] cancel"))
 			b.WriteString("\n")
 		}
+	case ModeHelp:
+		b.WriteString("\n")
+		b.WriteString(renderGuide())
 	default:
 		b.WriteString("\n")
-		b.WriteString(helpStyle.Render("  [Enter] jump  [n] new  [a] attach  [d] delete  [r] refresh  [q] quit"))
+		b.WriteString(helpStyle.Render("  [Enter] jump  [n] new  [a] attach  [d] delete  [r] refresh  [h] help  [q] quit"))
 		b.WriteString("\n")
 	}
 
