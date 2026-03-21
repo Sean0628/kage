@@ -167,9 +167,17 @@ func LaunchFeature(cfg *config.Config, proj config.Project, branch string, creat
 		}
 	}
 
-	// Create new window in detached mode so we can set up layout before switching
-	if err := tmux.NewWindow(windowName, workDir, true); err != nil {
-		return fmt.Errorf("creating window: %w", err)
+	// Find the first leaf command so we can run it directly in the new window,
+	// avoiding the race condition where SendKeys fires before the shell is ready.
+	firstCmd := firstLeafCmd(layoutNode)
+	if firstCmd != "" {
+		if err := tmux.NewWindowWithCmd(windowName, workDir, true, firstCmd); err != nil {
+			return fmt.Errorf("creating window: %w", err)
+		}
+	} else {
+		if err := tmux.NewWindow(windowName, workDir, true); err != nil {
+			return fmt.Errorf("creating window: %w", err)
+		}
 	}
 
 	// Find the window's numeric index for reliable targeting
@@ -196,8 +204,8 @@ func LaunchFeature(cfg *config.Config, proj config.Project, branch string, creat
 	}
 	firstPane := fmt.Sprintf("%s.%d", windowTarget, panes[0].Index)
 
-	// Setup pane layout recursively
-	if err := tmux.SetupLayoutTree(windowTarget, layoutNode, firstPane, workDir); err != nil {
+	// Setup pane layout recursively; first leaf command already handled by NewWindowWithCmd
+	if err := tmux.SetupLayoutTree(windowTarget, layoutNode, firstPane, workDir, firstCmd != ""); err != nil {
 		tmux.KillWindow(windowTarget)
 		return fmt.Errorf("setting up layout: %w", err)
 	}
@@ -233,6 +241,24 @@ func DeleteFeature(proj config.Project, branch string, force bool) error {
 		}
 	}
 	return nil
+}
+
+// firstLeafCmd returns the command of the first leaf node in a layout tree,
+// or "" if the first leaf is a "shell" or has no command.
+func firstLeafCmd(node *config.LayoutNode) string {
+	if node == nil {
+		return ""
+	}
+	if node.IsLeaf() {
+		if node.Cmd != "" && node.Cmd != "shell" {
+			return node.Cmd
+		}
+		return ""
+	}
+	if len(node.Panes) == 0 {
+		return ""
+	}
+	return firstLeafCmd(node.Panes[0])
 }
 
 // FeatureWindowName is exported for use by TUI.
