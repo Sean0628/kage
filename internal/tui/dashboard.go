@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/shoito/kage/internal/project"
+	"github.com/Sean0628/kage/internal/project"
 )
 
 // listItem is a flattened item in the dashboard list.

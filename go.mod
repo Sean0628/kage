@@ -1,4 +1,4 @@
-module github.com/shoito/kage
+module github.com/Sean0628/kage
 
 go 1.26.1
 
