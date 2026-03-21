@@ -3,7 +3,7 @@ package mcp
 import (
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/shoito/kage/internal/config"
+	"github.com/Sean0628/kage/internal/config"
 )
 
 // NewServer creates a new MCP server with all kage coordination tools registered.

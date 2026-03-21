@@ -9,9 +9,9 @@ import (
 	gomcp "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/shoito/kage/internal/config"
-	"github.com/shoito/kage/internal/project"
-	"github.com/shoito/kage/internal/tmux"
+	"github.com/Sean0628/kage/internal/config"
+	"github.com/Sean0628/kage/internal/project"
+	"github.com/Sean0628/kage/internal/tmux"
 )
 
 func registerTools(s *server.MCPServer, cfg *config.Config) {

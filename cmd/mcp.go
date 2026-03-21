@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	kageMcp "github.com/shoito/kage/internal/mcp"
+	kageMcp "github.com/Sean0628/kage/internal/mcp"
 	"github.com/spf13/cobra"
 )
 
