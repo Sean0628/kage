@@ -8,8 +8,8 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 **kage** (影, *shadow*) is inspired by **影分身 (Kage Bunshin / Shadow Clone)** — the technique of creating multiple clones of yourself, each working independently on a different task. With kage, you summon shadow clones of AI coding agents, each operating in its own git worktree and tmux window, working on separate features in parallel. You are the original; your agents are the clones.
 
 ```
-                          ┌─────────────────────────────────┐
-                          │         kage TUI Dashboard       │
+                          ┌──────────────────────────────────┐
+                          │        kage TUI Dashboard        │
                           │  ┌─────────────────────────────┐ │
                           │  │ ● app/feat-auth        [3p] │ │
                           │  │   app/feat-search      [3p] │ │
@@ -17,7 +17,7 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
                           │  │                             │ │
                           │  │ n:new  enter:jump  d:delete │ │
                           │  └─────────────────────────────┘ │
-                          └──────────────┬──────────────────┘
+                          └──────────────┬───────────────────┘
                                          │
                       ┌──────────────────┼──────────────────┐
                       │                  │                  │
@@ -118,6 +118,7 @@ This creates (or attaches to) a tmux session named `kage` and opens the TUI dash
 | `enter` | Jump to window |
 | `a` | Attach agent to existing worktree |
 | `d` | Delete feature (worktree + window) |
+| `h` | Show help guide |
 | `r` | Refresh |
 | `q` | Quit dashboard |
 
@@ -234,4 +235,4 @@ go vet ./...              # lint
 ```
 
 ## Copyright
-Copyright (c) 2026 Sho Ito. See [LICENSE.md](https://github.com/Sean0628/kage/blob/main/LICENSE) for further details.
+Copyright (c) 2026 Sho Ito. See [LICENSE](https://github.com/Sean0628/kage/blob/main/LICENSE) for further details.
