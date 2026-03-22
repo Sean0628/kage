@@ -32,10 +32,10 @@ Sleep 500ms
 Enter
 Sleep 3s
 
-# Return to dashboard (Ctrl+a 1)
+# Return to dashboard (Ctrl+a K)
 Ctrl+a
 Sleep 300ms
-Type "1"
+Type "K"
 Sleep 2s
 
 # Delete the feature
