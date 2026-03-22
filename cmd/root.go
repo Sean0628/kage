@@ -120,14 +120,12 @@ func setupCoordinatorPane(cfg *config.Config) {
 	// Split dashboard window: left = TUI, right = coordinator
 	// Use SplitWindowWithCmd to run the agent directly, avoiding the race condition
 	// where SendKeys fires before the shell in the new pane is ready.
+	// Detached=true keeps focus on the dashboard (pane 0).
 	target := tmux.SessionName + ":dashboard"
-	if err := tmux.SplitWindowWithCmd(target, true, "50", cfg.EffectiveWorkspace(), coordinatorCmd); err != nil {
+	if err := tmux.SplitWindowWithCmd(target, true, "50", cfg.EffectiveWorkspace(), coordinatorCmd, true); err != nil {
 		fmt.Fprintf(os.Stderr, "kage: failed to split dashboard for coordinator: %v\n", err)
 		return
 	}
-
-	// Select the left pane (TUI) as active
-	tmux.RunSilent("select-pane", "-t", target+".0")
 }
 
 // buildCoordinatorCmd returns the shell command to launch the coordinator agent

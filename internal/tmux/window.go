@@ -69,12 +69,16 @@ func SplitWindow(target string, horizontal bool, size string, startDir string) e
 // Unlike SplitWindow + SendKeys, this avoids the race condition where keystrokes
 // arrive before the shell is ready. The pane is set to remain-on-exit so it
 // stays open if the command exits.
-func SplitWindowWithCmd(target string, horizontal bool, size string, startDir string, cmd string) error {
+// If detached is true, the original pane retains focus.
+func SplitWindowWithCmd(target string, horizontal bool, size string, startDir string, cmd string, detached bool) error {
 	flag := "-h" // side by side
 	if horizontal {
 		flag = "-v" // top/bottom
 	}
 	args := []string{"split-window", flag, "-t", target}
+	if detached {
+		args = append(args, "-d")
+	}
 	if size != "" {
 		args = append(args, "-p", strings.TrimSuffix(size, "%"))
 	}
@@ -236,7 +240,7 @@ func SetupLayoutTree(windowTarget string, node *config.LayoutNode, paneTarget st
 		// For leaf children with commands, use SplitWindowWithCmd to avoid
 		// the race condition where SendKeys fires before the shell is ready.
 		if child.IsLeaf() && child.Cmd != "" && child.Cmd != "shell" {
-			if err := SplitWindowWithCmd(currentPane, horizontal, sizeStr, workDir, child.Cmd); err != nil {
+			if err := SplitWindowWithCmd(currentPane, horizontal, sizeStr, workDir, child.Cmd, false); err != nil {
 				return fmt.Errorf("splitting for child %d: %w", i+1, err)
 			}
 			cmdHandled[i+1] = true
