@@ -121,7 +121,7 @@ func setupCoordinatorPane(cfg *config.Config) {
 	// Use SplitWindowWithCmd to run the agent directly, avoiding the race condition
 	// where SendKeys fires before the shell in the new pane is ready.
 	target := tmux.SessionName + ":dashboard"
-	if err := tmux.SplitWindowWithCmd(target, false, "50", cfg.EffectiveWorkspace(), coordinatorCmd); err != nil {
+	if err := tmux.SplitWindowWithCmd(target, true, "50", cfg.EffectiveWorkspace(), coordinatorCmd); err != nil {
 		fmt.Fprintf(os.Stderr, "kage: failed to split dashboard for coordinator: %v\n", err)
 		return
 	}

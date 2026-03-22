@@ -75,16 +75,7 @@ func listProjectsHandler(cfg *config.Config) server.ToolHandlerFunc {
 func listFeaturesTool() gomcp.Tool {
 	return gomcp.NewTool("list_features",
 		gomcp.WithDescription("List features for a specific project with pane status"),
-		gomcp.WithRawInputSchema(json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"project": {
-					"type": "string",
-					"description": "Project name"
-				}
-			},
-			"required": ["project"]
-		}`)),
+		gomcp.WithString("project", gomcp.Required(), gomcp.Description("Project name")),
 	)
 }
 
@@ -143,24 +134,9 @@ func listFeaturesHandler(cfg *config.Config) server.ToolHandlerFunc {
 func sendToAgentTool() gomcp.Tool {
 	return gomcp.NewTool("send_to_agent",
 		gomcp.WithDescription("Send a message to a specific feature's Claude Code pane via tmux"),
-		gomcp.WithRawInputSchema(json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"project": {
-					"type": "string",
-					"description": "Project name"
-				},
-				"branch": {
-					"type": "string",
-					"description": "Feature branch name"
-				},
-				"message": {
-					"type": "string",
-					"description": "Message to send to the Claude Code instance"
-				}
-			},
-			"required": ["project", "branch", "message"]
-		}`)),
+		gomcp.WithString("project", gomcp.Required(), gomcp.Description("Project name")),
+		gomcp.WithString("branch", gomcp.Required(), gomcp.Description("Feature branch name")),
+		gomcp.WithString("message", gomcp.Required(), gomcp.Description("Message to send to the Claude Code instance")),
 	)
 }
 
@@ -201,20 +177,8 @@ func sendToAgentHandler(cfg *config.Config) server.ToolHandlerFunc {
 func broadcastToAgentsTool() gomcp.Tool {
 	return gomcp.NewTool("broadcast_to_agents",
 		gomcp.WithDescription("Send a message to all live Claude Code panes, optionally filtered by project"),
-		gomcp.WithRawInputSchema(json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"message": {
-					"type": "string",
-					"description": "Message to send to all Claude Code instances"
-				},
-				"project": {
-					"type": "string",
-					"description": "Optional: filter to a specific project"
-				}
-			},
-			"required": ["message"]
-		}`)),
+		gomcp.WithString("message", gomcp.Required(), gomcp.Description("Message to send to all Claude Code instances")),
+		gomcp.WithString("project", gomcp.Required(), gomcp.Description("Project name to filter by, or empty string for all projects")),
 	)
 }
 
@@ -230,7 +194,7 @@ func broadcastToAgentsHandler(cfg *config.Config) server.ToolHandlerFunc {
 		if err != nil {
 			return gomcp.NewToolResultError("missing required parameter: message"), nil
 		}
-		projFilter := req.GetString("project", "")
+		projFilter, _ := req.RequireString("project")
 
 		states := project.LoadAll(cfg)
 		var results []broadcastResult
@@ -281,24 +245,9 @@ func broadcastToAgentsHandler(cfg *config.Config) server.ToolHandlerFunc {
 func captureAgentOutputTool() gomcp.Tool {
 	return gomcp.NewTool("capture_agent_output",
 		gomcp.WithDescription("Capture recent visible output from a feature's Claude Code pane"),
-		gomcp.WithRawInputSchema(json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"project": {
-					"type": "string",
-					"description": "Project name"
-				},
-				"branch": {
-					"type": "string",
-					"description": "Feature branch name"
-				},
-				"lines": {
-					"type": "integer",
-					"description": "Number of lines to capture (default: 50)"
-				}
-			},
-			"required": ["project", "branch"]
-		}`)),
+		gomcp.WithString("project", gomcp.Required(), gomcp.Description("Project name")),
+		gomcp.WithString("branch", gomcp.Required(), gomcp.Description("Feature branch name")),
+		gomcp.WithNumber("lines", gomcp.Description("Number of lines to capture (default: 50)")),
 	)
 }
 
@@ -333,20 +282,8 @@ func captureAgentOutputHandler(cfg *config.Config) server.ToolHandlerFunc {
 func getAgentStatusTool() gomcp.Tool {
 	return gomcp.NewTool("get_agent_status",
 		gomcp.WithDescription("Check if a Claude Code pane is idle (at prompt) or busy (mid-execution)"),
-		gomcp.WithRawInputSchema(json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"project": {
-					"type": "string",
-					"description": "Project name"
-				},
-				"branch": {
-					"type": "string",
-					"description": "Feature branch name"
-				}
-			},
-			"required": ["project", "branch"]
-		}`)),
+		gomcp.WithString("project", gomcp.Required(), gomcp.Description("Project name")),
+		gomcp.WithString("branch", gomcp.Required(), gomcp.Description("Feature branch name")),
 	)
 }
 
