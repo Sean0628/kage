@@ -7,6 +7,10 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 
 **kage** (影, *shadow*) is inspired by **影分身 (Kage Bunshin / Shadow Clone)** — the technique of creating multiple clones of yourself, each working independently on a different task. With kage, you summon shadow clones of AI coding agents, each operating in its own git worktree and tmux window, working on separate features in parallel. You are the original; your agents are the clones.
 
+## Demo
+
+![kage demo](./assets/demo.gif)
+
 ```
                           ┌──────────────────────────────────┐
                           │        kage TUI Dashboard        │
