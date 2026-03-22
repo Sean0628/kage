@@ -12,41 +12,41 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 ![kage demo](./assets/demo.gif)
 
 ```
-                          ┌──────────────────────────────────┐
-                          │        kage TUI Dashboard        │
-                          │  ┌─────────────────────────────┐ │
-                          │  │ ● app/feat-auth        [3p] │ │
-                          │  │   app/feat-search      [3p] │ │
-                          │  │   app/fix-login        [3p] │ │
-                          │  │                             │ │
-                          │  │ n:new  enter:jump  d:delete │ │
-                          │  └─────────────────────────────┘ │
-                          └──────────────┬───────────────────┘
-                                         │
-                      ┌──────────────────┼──────────────────┐
-                      │                  │                  │
-                      ▼                  ▼                  ▼
-              ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-              │ tmux window  │  │ tmux window  │  │ tmux window  │
-              │ feat-auth    │  │ feat-search  │  │ fix-login    │
-              │┌────────────┐│  │┌────────────┐│  │┌────────────┐│
-              ││ Claude Code ││  ││   Aider    ││  ││   Codex    ││
-              ││   (60%)    ││  ││   (60%)    ││  ││   (60%)    ││
-              │├────────────┤│  │├────────────┤│  │├────────────┤│
-              ││ shell (20%)││  ││ shell (20%)││  ││ shell (20%)││
-              │├────────────┤│  │├────────────┤│  │├────────────┤│
-              ││ shell (20%)││  ││ shell (20%)││  ││ shell (20%)││
-              │└────────────┘│  │└────────────┘│  │└────────────┘│
-              └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-                     │                 │                 │
-                     ▼                 ▼                 ▼
-              ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-              │ git worktree │  │ git worktree │  │ git worktree │
-              │ app-feat-auth│  │app-feat-search│ │ app-fix-login│
-              └──────────────┘  └──────────────┘  └──────────────┘
+                         ┌───────────────────────────────────┐
+                         │         kage TUI Dashboard        │
+                         │  ┌─────────────────────────────┐  │
+                         │  │ ● app/feat-auth        [3p] │  │
+                         │  │   app/feat-search      [3p] │  │
+                         │  │   app/fix-login        [3p] │  │
+                         │  │                             │  │
+                         │  │ n:new  enter:jump  d:delete │  │
+                         │  └─────────────────────────────┘  │
+                         └─────────────────┬─────────────────┘
+                                           │
+                       ┌───────────────────┼───────────────────┐
+                       │                   │                   │
+                       ▼                   ▼                   ▼
+              ┌────────────────┐  ┌────────────────┐  ┌────────────────┐
+              │   tmux window  │  │   tmux window  │  │   tmux window  │
+              │   feat-auth    │  │  feat-search   │  │   fix-login    │
+              │┌──────────────┐│  │┌──────────────┐│  │┌──────────────┐│
+              ││ Claude Code  ││  ││    Aider     ││  ││    Codex     ││
+              ││    (60%)     ││  ││    (60%)     ││  ││    (60%)     ││
+              │├──────────────┤│  │├──────────────┤│  │├──────────────┤│
+              ││ shell (20%)  ││  ││ shell (20%)  ││  ││ shell (20%)  ││
+              │├──────────────┤│  │├──────────────┤│  │├──────────────┤│
+              ││ shell (20%)  ││  ││ shell (20%)  ││  ││ shell (20%)  ││
+              │└──────────────┘│  │└──────────────┘│  │└──────────────┘│
+              └────────┬───────┘  └────────┬───────┘  └────────┬───────┘
+                       │                   │                   │
+                       ▼                   ▼                   ▼
+              ┌────────────────┐  ┌────────────────┐  ┌────────────────┐
+              │  git worktree  │  │  git worktree  │  │  git worktree  │
+              │ app-feat-auth  │  │app-feat-search │  │ app-fix-login  │
+              └────────────────┘  └────────────────┘  └────────────────┘
 
-         Each "shadow clone" works independently in its own
-           isolated worktree — no conflicts, no interference.
+          Each "shadow clone" works independently in its own
+            isolated worktree — no conflicts, no interference.
 ```
 
 ## Features
