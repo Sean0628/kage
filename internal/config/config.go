@@ -115,8 +115,11 @@ type Defaults struct {
 }
 
 type Config struct {
-	Defaults Defaults  `yaml:"defaults"`
-	Projects []Project `yaml:"projects"`
+	Workspace      string    `yaml:"workspace,omitempty"`
+	Coordinator    bool      `yaml:"coordinator,omitempty"`
+	CoordinatorCmd string    `yaml:"coordinator_cmd,omitempty"`
+	Defaults       Defaults  `yaml:"defaults"`
+	Projects       []Project `yaml:"projects"`
 }
 
 var DefaultLayout = &LayoutNode{
@@ -200,6 +203,21 @@ func applyDefaults(cfg *Config) {
 			}
 		}
 	}
+}
+
+// EffectiveWorkspace returns the resolved workspace directory.
+// Defaults to the user's home directory if not set.
+func (c *Config) EffectiveWorkspace() string {
+	if c.Workspace == "" {
+		home, _ := os.UserHomeDir()
+		return home
+	}
+	path := c.Workspace
+	if len(path) > 0 && path[0] == '~' {
+		home, _ := os.UserHomeDir()
+		path = filepath.Join(home, path[1:])
+	}
+	return path
 }
 
 // EffectiveLayout returns the layout tree for a project, falling back to defaults.

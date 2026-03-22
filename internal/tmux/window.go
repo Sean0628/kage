@@ -33,6 +33,21 @@ func NewWindow(name string, startDir string, detached bool) error {
 	return RunSilent(args...)
 }
 
+// NewWindowWithCmd creates a new window and runs a command directly in it.
+// Unlike NewWindow + SendKeys, this avoids the race condition where keystrokes
+// arrive before the shell is ready.
+func NewWindowWithCmd(name string, startDir string, detached bool, cmd string) error {
+	args := []string{"new-window", "-t", SessionName + ":", "-n", name}
+	if detached {
+		args = append(args, "-d")
+	}
+	if startDir != "" {
+		args = append(args, "-c", startDir)
+	}
+	args = append(args, cmd)
+	return RunSilent(args...)
+}
+
 // SplitWindow splits a pane. If horizontal is true, splits top/bottom (-v flag in tmux).
 // size is a percentage string like "20%".
 func SplitWindow(target string, horizontal bool, size string, startDir string) error {
@@ -50,9 +65,44 @@ func SplitWindow(target string, horizontal bool, size string, startDir string) e
 	return RunSilent(args...)
 }
 
+// SplitWindowWithCmd splits a pane and runs a command directly in the new pane.
+// Unlike SplitWindow + SendKeys, this avoids the race condition where keystrokes
+// arrive before the shell is ready. The pane is set to remain-on-exit so it
+// stays open if the command exits.
+func SplitWindowWithCmd(target string, horizontal bool, size string, startDir string, cmd string) error {
+	flag := "-h" // side by side
+	if horizontal {
+		flag = "-v" // top/bottom
+	}
+	args := []string{"split-window", flag, "-t", target}
+	if size != "" {
+		args = append(args, "-p", strings.TrimSuffix(size, "%"))
+	}
+	if startDir != "" {
+		args = append(args, "-c", startDir)
+	}
+	args = append(args, cmd)
+	return RunSilent(args...)
+}
+
 // SendKeys sends keystrokes to a tmux pane.
 func SendKeys(target string, keys string) error {
 	return RunSilent("send-keys", "-t", target, keys, "Enter")
+}
+
+// SendKeysLiteral sends literal text to a tmux pane (no special key interpretation).
+func SendKeysLiteral(target string, text string) error {
+	return RunSilent("send-keys", "-t", target, "-l", text)
+}
+
+// CapturePane captures visible content from a tmux pane.
+// If lines > 0, only the last N lines are captured.
+func CapturePane(target string, lines int) (string, error) {
+	args := []string{"capture-pane", "-t", target, "-p"}
+	if lines > 0 {
+		args = append(args, "-S", fmt.Sprintf("-%d", lines))
+	}
+	return Run(args...)
 }
 
 // ListWindows returns all windows in the kage session.
@@ -139,13 +189,18 @@ func ParseSizePercent(s string) int {
 
 // SetupLayoutTree creates panes according to a recursive layout tree.
 // windowTarget is like "kage:1", paneTarget is like "kage:1.0".
-func SetupLayoutTree(windowTarget string, node *config.LayoutNode, paneTarget string, workDir string) error {
+// If initialCmdHandled is true, the first leaf pane's command was already
+// started (e.g. via NewWindowWithCmd) and should not be sent again.
+func SetupLayoutTree(windowTarget string, node *config.LayoutNode, paneTarget string, workDir string, initialCmdHandled bool) error {
 	if node == nil {
 		return nil
 	}
 
-	// Leaf node: just send the command
+	// Leaf node: send the command unless already handled
 	if node.IsLeaf() {
+		if initialCmdHandled {
+			return nil
+		}
 		if node.Cmd != "" && node.Cmd != "shell" {
 			return SendKeys(paneTarget, node.Cmd)
 		}
@@ -169,12 +224,28 @@ func SetupLayoutTree(windowTarget string, node *config.LayoutNode, paneTarget st
 	paneTargets := make([]string, len(node.Panes))
 	paneTargets[0] = paneTarget
 
+	// Track which children already have their command running
+	cmdHandled := make([]bool, len(node.Panes))
+	cmdHandled[0] = initialCmdHandled
+
 	currentPane := paneTarget
 	for i, splitPct := range splits {
+		child := node.Panes[i+1]
 		sizeStr := fmt.Sprintf("%d", splitPct)
-		if err := SplitWindow(currentPane, horizontal, sizeStr, workDir); err != nil {
-			return fmt.Errorf("splitting for child %d: %w", i+1, err)
+
+		// For leaf children with commands, use SplitWindowWithCmd to avoid
+		// the race condition where SendKeys fires before the shell is ready.
+		if child.IsLeaf() && child.Cmd != "" && child.Cmd != "shell" {
+			if err := SplitWindowWithCmd(currentPane, horizontal, sizeStr, workDir, child.Cmd); err != nil {
+				return fmt.Errorf("splitting for child %d: %w", i+1, err)
+			}
+			cmdHandled[i+1] = true
+		} else {
+			if err := SplitWindow(currentPane, horizontal, sizeStr, workDir); err != nil {
+				return fmt.Errorf("splitting for child %d: %w", i+1, err)
+			}
 		}
+
 		updatedPanes, err := ListPanes(windowTarget)
 		if err != nil {
 			return fmt.Errorf("listing panes after split %d: %w", i+1, err)
@@ -187,7 +258,15 @@ func SetupLayoutTree(windowTarget string, node *config.LayoutNode, paneTarget st
 
 	// Recurse into each child
 	for i, child := range node.Panes {
-		if err := SetupLayoutTree(windowTarget, child, paneTargets[i], workDir); err != nil {
+		if child.IsLeaf() {
+			if !cmdHandled[i] && child.Cmd != "" && child.Cmd != "shell" {
+				if err := SendKeys(paneTargets[i], child.Cmd); err != nil {
+					return err
+				}
+			}
+			continue
+		}
+		if err := SetupLayoutTree(windowTarget, child, paneTargets[i], workDir, cmdHandled[i]); err != nil {
 			return err
 		}
 	}

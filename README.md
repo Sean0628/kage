@@ -52,6 +52,7 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 - **Bubble Tea TUI dashboard** — Create, launch, switch between, and delete worktree sessions interactively
 - **Flexible pane layouts** — Configure horizontal/vertical splits with nested tree layouts or simple flat lists
 - **Agent-agnostic** — Works with Claude Code, Codex, Aider, or any CLI tool
+- **Coordinator mode** — Optionally launch a coordinator Claude Code pane on the dashboard with an MCP server for cross-agent orchestration
 
 ## Requirements
 
@@ -92,6 +93,9 @@ defaults:
 projects:
   - name: my-project
     path: /path/to/your/repo
+
+# Optional: launch a coordinator Claude Code pane on the dashboard
+# coordinator: true
 ```
 
 2. Launch kage:
@@ -175,6 +179,40 @@ projects:
 ```
 
 Projects without a `layout` key inherit from `defaults`.
+
+#### Coordinator Mode
+
+When `coordinator: true` is set, kage splits the dashboard window and launches a coordinator agent with the kage MCP server pre-configured. The coordinator can orchestrate work across all feature agents — listing projects, sending messages, capturing output, and checking agent status.
+
+```yaml
+coordinator: true
+```
+
+By default this uses Claude Code. You can switch to Codex CLI or any other agent:
+
+```yaml
+coordinator: true
+coordinator_cmd: codex    # uses `codex mcp add` to wire kage MCP automatically
+```
+
+```yaml
+coordinator: true
+coordinator_cmd: my-agent  # custom agent — launched as-is, no automatic MCP wiring
+```
+
+Supported agents with automatic MCP wiring:
+- **claude** (default) — uses `--mcp-config` flag
+- **codex** — uses `codex mcp add` to register the kage MCP server
+
+This is disabled by default.
+
+#### Workspace Directory
+
+You can set a default working directory for the kage tmux session with the `workspace` key. It defaults to your home directory if not set.
+
+```yaml
+workspace: ~/work
+```
 
 ## How It Works
 

@@ -16,8 +16,13 @@ func HasSession() bool {
 
 // NewSession creates a new tmux session named "kage" in detached mode.
 // The first window is named "dashboard".
-func NewSession() error {
-	return RunSilent("new-session", "-d", "-s", SessionName, "-n", "dashboard")
+// If startDir is non-empty, the session starts in that directory.
+func NewSession(startDir string) error {
+	args := []string{"new-session", "-d", "-s", SessionName, "-n", "dashboard"}
+	if startDir != "" {
+		args = append(args, "-c", startDir)
+	}
+	return RunSilent(args...)
 }
 
 // AttachSession replaces the current process with tmux attach-session.
