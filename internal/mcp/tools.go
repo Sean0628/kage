@@ -11,6 +11,7 @@ import (
 
 	"github.com/Sean0628/kage/internal/config"
 	"github.com/Sean0628/kage/internal/project"
+	"github.com/Sean0628/kage/internal/state"
 	"github.com/Sean0628/kage/internal/tmux"
 )
 
@@ -38,14 +39,16 @@ type projectInfo struct {
 }
 
 type featureInfo struct {
-	Branch string `json:"branch"`
-	Status string `json:"status"`
-	IsMain bool   `json:"is_main"`
+	Branch      string `json:"branch"`
+	Status      string `json:"status"`
+	IsMain      bool   `json:"is_main"`
+	Description string `json:"description,omitempty"`
 }
 
 func listProjectsHandler(cfg *config.Config) server.ToolHandlerFunc {
 	return func(ctx context.Context, req gomcp.CallToolRequest) (*gomcp.CallToolResult, error) {
-		states := project.LoadAll(cfg)
+		st, _ := state.Load(state.DefaultStatePath())
+		states := project.LoadAll(cfg, st)
 		var projects []projectInfo
 		for _, s := range states {
 			p := projectInfo{
@@ -58,9 +61,10 @@ func listProjectsHandler(cfg *config.Config) server.ToolHandlerFunc {
 					status = "live"
 				}
 				p.Features = append(p.Features, featureInfo{
-					Branch: f.Branch,
-					Status: status,
-					IsMain: f.IsMain,
+					Branch:      f.Branch,
+					Status:      status,
+					IsMain:      f.IsMain,
+					Description: f.Description,
 				})
 			}
 			projects = append(projects, p)
@@ -80,10 +84,11 @@ func listFeaturesTool() gomcp.Tool {
 }
 
 type featureDetail struct {
-	Branch string       `json:"branch"`
-	Status string       `json:"status"`
-	IsMain bool         `json:"is_main"`
-	Panes  []paneDetail `json:"panes,omitempty"`
+	Branch      string       `json:"branch"`
+	Status      string       `json:"status"`
+	IsMain      bool         `json:"is_main"`
+	Description string       `json:"description,omitempty"`
+	Panes       []paneDetail `json:"panes,omitempty"`
 }
 
 type paneDetail struct {
@@ -103,7 +108,8 @@ func listFeaturesHandler(cfg *config.Config) server.ToolHandlerFunc {
 			return gomcp.NewToolResultErrorf("project %q not found", projName), nil
 		}
 
-		state := project.LoadProject(cfg, proj)
+		st, _ := state.Load(state.DefaultStatePath())
+		state := project.LoadProject(cfg, proj, st)
 		var features []featureDetail
 		for _, f := range state.Features {
 			status := "inactive"
@@ -111,9 +117,10 @@ func listFeaturesHandler(cfg *config.Config) server.ToolHandlerFunc {
 				status = "live"
 			}
 			fd := featureDetail{
-				Branch: f.Branch,
-				Status: status,
-				IsMain: f.IsMain,
+				Branch:      f.Branch,
+				Status:      status,
+				IsMain:      f.IsMain,
+				Description: f.Description,
 			}
 			for _, p := range f.Panes {
 				fd.Panes = append(fd.Panes, paneDetail{
@@ -196,7 +203,8 @@ func broadcastToAgentsHandler(cfg *config.Config) server.ToolHandlerFunc {
 		}
 		projFilter, _ := req.RequireString("project")
 
-		states := project.LoadAll(cfg)
+		st, _ := state.Load(state.DefaultStatePath())
+		states := project.LoadAll(cfg, st)
 		var results []broadcastResult
 		for _, s := range states {
 			if projFilter != "" && s.Config.Name != projFilter {

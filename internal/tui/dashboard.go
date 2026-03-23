@@ -78,6 +78,11 @@ func renderFeature(item listItem, selected bool) string {
 		branch = normalStyle.Render(branch)
 	}
 
+	desc := ""
+	if f.Description != "" {
+		desc = dimStyle.Render("  " + f.Description)
+	}
+
 	paneInfo := ""
 	if f.Status == project.StatusLive && len(f.Panes) > 0 {
 		paneInfo = dimStyle.Render("  " + formatPanes(f.Panes))
@@ -89,7 +94,7 @@ func renderFeature(item listItem, selected bool) string {
 	if selected {
 		cursor = "> "
 	}
-	return fmt.Sprintf("%s    %s %s%s", cursor, marker, branch, paneInfo)
+	return fmt.Sprintf("%s    %s %s%s%s", cursor, marker, branch, desc, paneInfo)
 }
 
 func formatPanes(panes []project.PaneStatus) string {
