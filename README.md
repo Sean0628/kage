@@ -54,6 +54,7 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 - **Git worktree isolation** — Each feature branch runs in its own worktree, so agents never interfere with each other
 - **tmux-based session management** — One tmux session, one window per feature, with customizable pane layouts
 - **Bubble Tea TUI dashboard** — Create, launch, switch between, and delete worktree sessions interactively
+- **Feature descriptions** — Add short descriptions to feature branches to remember what each clone is working on
 - **Flexible pane layouts** — Configure horizontal/vertical splits with nested tree layouts or simple flat lists
 - **Agent-agnostic** — Works with Claude Code, Codex, Aider, or any CLI tool
 - **Coordinator mode** — Optionally launch a coordinator Claude Code pane on the dashboard with an MCP server for cross-agent orchestration
@@ -122,8 +123,9 @@ This creates (or attaches to) a tmux session named `kage` and opens the TUI dash
 | `enter` | Jump to window |
 | `a` | Attach agent to existing worktree |
 | `d` | Delete feature (worktree + window) |
-| `h` | Show help guide |
+| `e` | Edit description for selected feature |
 | `r` | Refresh |
+| `h` | Show help guide |
 | `q` | Quit dashboard |
 
 While in tmux, press `Ctrl+b K` to jump back to the dashboard.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Sean0628/kage/internal/config"
+	"github.com/Sean0628/kage/internal/state"
 	"github.com/Sean0628/kage/internal/tmux"
 	"github.com/Sean0628/kage/internal/worktree"
 )
@@ -18,12 +19,13 @@ const (
 
 // Feature represents a worktree/branch with its tmux state.
 type Feature struct {
-	Branch     string
-	WorkDir    string
-	IsMain     bool
-	Status     FeatureStatus
-	WindowName string
-	Panes      []PaneStatus
+	Branch      string
+	WorkDir     string
+	IsMain      bool
+	Status      FeatureStatus
+	WindowName  string
+	Panes       []PaneStatus
+	Description string
 }
 
 // PaneStatus represents a pane's configured command and running process.
@@ -39,23 +41,23 @@ type ProjectState struct {
 }
 
 // LoadAll builds the full state for all configured projects.
-func LoadAll(cfg *config.Config) []ProjectState {
+func LoadAll(cfg *config.Config, st *state.State) []ProjectState {
 	var states []ProjectState
 	for _, proj := range cfg.Projects {
-		state := LoadProject(cfg, proj)
+		state := LoadProject(cfg, proj, st)
 		states = append(states, state)
 	}
 	return states
 }
 
 // LoadProject builds the state for a single project.
-func LoadProject(cfg *config.Config, proj config.Project) ProjectState {
-	state := ProjectState{Config: proj}
+func LoadProject(cfg *config.Config, proj config.Project, st *state.State) ProjectState {
+	ps := ProjectState{Config: proj}
 
 	// Get worktrees
 	wts, err := worktree.List(proj.Path)
 	if err != nil {
-		return state
+		return ps
 	}
 
 	// Get tmux windows
@@ -74,6 +76,10 @@ func LoadProject(cfg *config.Config, proj config.Project) ProjectState {
 			IsMain:  wt.IsMain,
 			Status:  StatusInactive,
 		}
+		if st != nil {
+			key := state.DescriptionKey(proj.Name, wt.Branch)
+			feature.Description = st.GetDescription(key)
+		}
 
 		// Check if there's a tmux window for this branch
 		windowName := featureWindowName(proj.Name, wt.Branch)
@@ -86,10 +92,10 @@ func LoadProject(cfg *config.Config, proj config.Project) ProjectState {
 			)
 		}
 
-		state.Features = append(state.Features, feature)
+		ps.Features = append(ps.Features, feature)
 	}
 
-	return state
+	return ps
 }
 
 // featureWindowName generates the tmux window name for a feature.

@@ -24,6 +24,8 @@ func renderGuide() string {
 	b.WriteString("\n")
 	b.WriteString(normalStyle.Render("    d              Delete feature worktree"))
 	b.WriteString("\n")
+	b.WriteString(normalStyle.Render("    e              Edit description for selected feature"))
+	b.WriteString("\n")
 	b.WriteString(normalStyle.Render("    r              Refresh project state"))
 	b.WriteString("\n\n")
 

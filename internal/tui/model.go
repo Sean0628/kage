@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Sean0628/kage/internal/config"
 	"github.com/Sean0628/kage/internal/project"
+	"github.com/Sean0628/kage/internal/state"
 	"github.com/Sean0628/kage/internal/worktree"
 )
 
@@ -21,11 +22,13 @@ const (
 	ModeConfirmDelete
 	ModeAttachBranch
 	ModeHelp
+	ModeEditDescription
 )
 
 // Model is the bubbletea model for the dashboard.
 type Model struct {
 	cfg    *config.Config
+	state  *state.State
 	states []project.ProjectState
 	items  []listItem
 	cursor int
@@ -47,6 +50,11 @@ type Model struct {
 	attachInput     textinput.Model
 	attachLoading   bool
 
+	// Edit description
+	descInput    textinput.Model
+	descTarget   *listItem
+	descProjName string
+
 	width  int
 	height int
 }
@@ -59,7 +67,7 @@ type fetchBranchesMsg struct {
 }
 
 // New creates a new dashboard model.
-func New(cfg *config.Config) Model {
+func New(cfg *config.Config, st *state.State) Model {
 	ti := textinput.New()
 	ti.Placeholder = "feature/branch-name"
 	ti.CharLimit = 100
@@ -70,16 +78,23 @@ func New(cfg *config.Config) Model {
 	ai.CharLimit = 100
 	ai.Width = 40
 
+	di := textinput.New()
+	di.Placeholder = "description"
+	di.CharLimit = 200
+	di.Width = 60
+
 	m := Model{
 		cfg:         cfg,
+		state:       st,
 		textInput:   ti,
 		attachInput: ai,
+		descInput:   di,
 	}
 	return m
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(refresh(m.cfg), tick())
+	return tea.Batch(refresh(m.cfg, m.state), tick())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -90,7 +105,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tickMsg:
-		return m, tea.Batch(refresh(m.cfg), tick())
+		return m, tea.Batch(refresh(m.cfg, m.state), tick())
 
 	case refreshMsg:
 		m.states = []project.ProjectState(msg)
@@ -125,6 +140,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateConfirmDelete(msg)
 		case ModeAttachBranch:
 			return m.updateAttachBranch(msg)
+		case ModeEditDescription:
+			return m.updateEditDescription(msg)
 		case ModeHelp:
 			m.mode = ModeNormal
 			return m, nil
@@ -197,8 +214,25 @@ func (m Model) updateNormal(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		ps := m.states[m.attachProjectID]
 		return m, tea.Batch(textinput.Blink, fetchBranches(ps.Config.Path, ps.Features))
 
+	case msg.String() == "e":
+		if m.cursor < len(m.items) {
+			item := m.items[m.cursor]
+			if !item.isHeader && item.feature != nil {
+				projName := m.states[item.projectIdx].Config.Name
+				key := state.DescriptionKey(projName, item.feature.Branch)
+				m.mode = ModeEditDescription
+				m.descTarget = &item
+				m.descProjName = projName
+				m.descInput.Reset()
+				m.descInput.SetValue(m.state.GetDescription(key))
+				m.descInput.Focus()
+				m.descInput.CursorEnd()
+				return m, textinput.Blink
+			}
+		}
+
 	case msg.String() == "r":
-		return m, refresh(m.cfg)
+		return m, refresh(m.cfg, m.state)
 
 	case msg.String() == "h":
 		m.mode = ModeHelp
@@ -221,7 +255,7 @@ func (m Model) updateNewBranch(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.err = err.Error()
 		}
 		m.mode = ModeNormal
-		return m, refresh(m.cfg)
+		return m, refresh(m.cfg, m.state)
 
 	case "esc", "ctrl+c":
 		m.mode = ModeNormal
@@ -246,10 +280,15 @@ func (m Model) updateConfirmDelete(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					m.err = err.Error()
 				}
 			}
+			if m.err == "" {
+				key := state.DescriptionKey(ps.Config.Name, m.deleteTarget.feature.Branch)
+				m.state.DeleteDescription(key)
+				_ = m.state.Save()
+			}
 		}
 		m.mode = ModeNormal
 		m.deleteTarget = nil
-		return m, refresh(m.cfg)
+		return m, refresh(m.cfg, m.state)
 
 	default:
 		m.mode = ModeNormal
@@ -269,7 +308,7 @@ func (m Model) updateAttachBranch(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.err = err.Error()
 			}
 			m.mode = ModeNormal
-			return m, refresh(m.cfg)
+			return m, refresh(m.cfg, m.state)
 		}
 		m.mode = ModeNormal
 		return m, nil
@@ -399,12 +438,19 @@ func (m Model) View() string {
 			b.WriteString(helpStyle.Render("  [↑/↓] navigate  [Enter] select  [Esc] cancel"))
 			b.WriteString("\n")
 		}
+	case ModeEditDescription:
+		if m.descTarget != nil && m.descTarget.feature != nil {
+			b.WriteString("\n")
+			b.WriteString(promptStyle.Render(fmt.Sprintf("  Description for '%s': ", m.descTarget.feature.Branch)))
+			b.WriteString(m.descInput.View())
+			b.WriteString("\n")
+		}
 	case ModeHelp:
 		b.WriteString("\n")
 		b.WriteString(renderGuide())
 	default:
 		b.WriteString("\n")
-		b.WriteString(helpStyle.Render("  [Enter] jump  [n] new  [a] attach  [d] delete  [r] refresh  [h] help  [q] quit"))
+		b.WriteString(helpStyle.Render("  [Enter] jump  [n] new  [a] attach  [d] delete  [e] edit desc  [r] refresh  [h] help  [q] quit"))
 		b.WriteString("\n")
 	}
 
@@ -433,9 +479,32 @@ func (m Model) prevSelectable() int {
 	return m.cursor
 }
 
-func refresh(cfg *config.Config) tea.Cmd {
+func (m Model) updateEditDescription(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "enter":
+		if m.descTarget != nil && m.descTarget.feature != nil {
+			key := state.DescriptionKey(m.descProjName, m.descTarget.feature.Branch)
+			m.state.SetDescription(key, m.descInput.Value())
+			_ = m.state.Save()
+		}
+		m.mode = ModeNormal
+		m.descTarget = nil
+		return m, refresh(m.cfg, m.state)
+
+	case "esc", "ctrl+c":
+		m.mode = ModeNormal
+		m.descTarget = nil
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	m.descInput, cmd = m.descInput.Update(msg)
+	return m, cmd
+}
+
+func refresh(cfg *config.Config, st *state.State) tea.Cmd {
 	return func() tea.Msg {
-		states := project.LoadAll(cfg)
+		states := project.LoadAll(cfg, st)
 		return refreshMsg(states)
 	}
 }

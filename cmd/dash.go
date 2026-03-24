@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/Sean0628/kage/internal/state"
 	"github.com/Sean0628/kage/internal/tui"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,12 @@ func runDash(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("loading config: %w", err)
 	}
 
-	model := tui.New(cfg)
+	st, err := state.Load(state.DefaultStatePath())
+	if err != nil {
+		return fmt.Errorf("loading state: %w", err)
+	}
+
+	model := tui.New(cfg, st)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running TUI: %v\n", err)
