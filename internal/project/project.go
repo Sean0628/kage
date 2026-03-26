@@ -32,6 +32,9 @@ type Feature struct {
 type PaneStatus struct {
 	ConfigCmd      string // from config layout, e.g. "claude", "codex", "npm run dev"
 	CurrentProcess string // from tmux pane_current_command
+	AgentName      string
+	IsAgent        bool
+	Status         AgentStatus
 }
 
 // ProjectState is the merged view of a project.
@@ -118,6 +121,16 @@ func loadPaneStatus(windowTarget string, layout *config.LayoutNode) []PaneStatus
 		}
 		if i < len(leaves) {
 			ps.ConfigCmd = leaves[i].Cmd
+		}
+		ps.IsAgent = IsAgentPane(ps.ConfigCmd, ps.CurrentProcess)
+		if ps.IsAgent {
+			ps.AgentName = AgentDisplayName(ps.ConfigCmd, ps.CurrentProcess)
+			output, err := tmux.CapturePane(fmt.Sprintf("%s.%d", windowTarget, tp.Index), 8)
+			if err == nil {
+				ps.Status = DetectAgentStatus(ps.ConfigCmd, ps.CurrentProcess, output)
+			} else {
+				ps.Status = DetectAgentStatus(ps.ConfigCmd, ps.CurrentProcess, "")
+			}
 		}
 		panes = append(panes, ps)
 	}
