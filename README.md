@@ -71,12 +71,32 @@ A CLI tool that manages multiple AI coding agent worktree sessions via tmux.
 go install github.com/Sean0628/kage@latest
 ```
 
+Check the installed version with:
+
+```bash
+kage --version
+```
+
+When installed with `go install github.com/Sean0628/kage@<tag>`, `kage --version`
+will report that tagged GitHub version automatically.
+
 Or build from source:
 
 ```bash
 git clone https://github.com/Sean0628/kage.git
 cd kage
-go build -o bin/kage .
+go build -ldflags "-X github.com/Sean0628/kage/cmd.version=v0.1.0" -o bin/kage .
+```
+
+## Releases
+
+GitHub tags are the source of truth for released versions. Push a tag like
+`v0.1.0` and GitHub Actions will build release artifacts with that same version
+embedded in the binary.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
 ## Quick Start

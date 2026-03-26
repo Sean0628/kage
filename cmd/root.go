@@ -15,9 +15,10 @@ import (
 var cfgPath string
 
 var rootCmd = &cobra.Command{
-	Use:   "kage",
-	Short: "kage (影) — manage multiple AI coding agent worktree sessions via tmux",
-	RunE:  runRoot,
+	Use:     "kage",
+	Short:   "kage (影) — manage multiple AI coding agent worktree sessions via tmux",
+	Version: versionString(),
+	RunE:    runRoot,
 }
 
 func Execute() {
@@ -28,6 +29,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "config file path (default: ~/.config/kage/config.yaml)")
+	rootCmd.SetVersionTemplate("{{.Version}}\n")
 }
 
 func loadConfig() (*config.Config, error) {
