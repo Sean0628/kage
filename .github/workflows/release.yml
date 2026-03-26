@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist
+          BIN_NAME="kage-${VERSION}-${GOOS}-${GOARCH}"
+          go build -ldflags "-s -w -X github.com/Sean0628/kage/cmd.version=${VERSION}" -o "dist/${BIN_NAME}" .
+          tar -C dist -czf "dist/${BIN_NAME}.tar.gz" "${BIN_NAME}"
+          rm "dist/${BIN_NAME}"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tar.gz
