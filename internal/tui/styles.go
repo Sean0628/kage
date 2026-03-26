@@ -30,6 +30,10 @@ var (
 	dimStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("240"))
 
+	columnHeaderStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("244"))
+
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")).
 			MarginTop(1)
@@ -47,4 +51,16 @@ var (
 	guideHeaderStyle = lipgloss.NewStyle().
 				Bold(true).
 				Foreground(lipgloss.Color("39"))
+
+	statusIdleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("46"))
+
+	statusRunningStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("214"))
+
+	statusWaitingInputStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("81"))
+
+	statusWaitingPermissionStyle = lipgloss.NewStyle().
+					Foreground(lipgloss.Color("203"))
 )

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	gomcp "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -323,7 +322,7 @@ func getAgentStatusHandler(cfg *config.Config) server.ToolHandlerFunc {
 			return gomcp.NewToolResultErrorf("failed to capture pane: %v", err), nil
 		}
 
-		status := detectAgentStatus(output)
+		status := string(project.DetectAgentStatus("claude", "claude", output))
 		result := agentStatus{
 			Project: projName,
 			Branch:  branch,
@@ -399,23 +398,4 @@ func resolveClaudePane(cfg *config.Config, projName, branch string) (string, err
 	}
 
 	return fmt.Sprintf("%s.%d", windowTarget, panes[claudeIdx].Index), nil
-}
-
-// detectAgentStatus infers whether Claude Code is idle or busy from captured output.
-func detectAgentStatus(output string) string {
-	lines := strings.Split(strings.TrimSpace(output), "\n")
-	if len(lines) == 0 {
-		return "unknown"
-	}
-	lastLine := strings.TrimSpace(lines[len(lines)-1])
-
-	// Claude Code shows ">" prompt when idle
-	if lastLine == ">" || strings.HasSuffix(lastLine, "> ") || strings.HasPrefix(lastLine, "> ") {
-		return "idle"
-	}
-	// Shell prompt indicators
-	if strings.HasSuffix(lastLine, "$ ") || strings.HasSuffix(lastLine, "% ") {
-		return "idle"
-	}
-	return "busy"
 }

@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Sean0628/kage/internal/config"
 	"github.com/Sean0628/kage/internal/project"
 	"github.com/Sean0628/kage/internal/state"
 	"github.com/Sean0628/kage/internal/worktree"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Mode represents the current TUI mode.
@@ -352,6 +352,7 @@ func (m Model) updateAttachBranch(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	var b strings.Builder
+	layout := computeDashboardLayout(m.width)
 
 	b.WriteString(titleStyle.Render("kage 影"))
 	b.WriteString("\n")
@@ -359,11 +360,14 @@ func (m Model) View() string {
 	if len(m.items) == 0 {
 		b.WriteString(dimStyle.Render("  No projects configured. Edit ~/.config/kage/config.yaml"))
 		b.WriteString("\n")
+	} else {
+		b.WriteString(renderColumnHeaders(layout))
+		b.WriteString("\n")
 	}
 
 	for i, item := range m.items {
 		selected := i == m.cursor
-		b.WriteString(renderItem(item, selected))
+		b.WriteString(renderItem(item, selected, layout))
 		b.WriteString("\n")
 	}
 
