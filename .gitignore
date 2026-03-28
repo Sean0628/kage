@@ -32,3 +32,6 @@ Thumbs.db
 # Build output
 /bin/
 /dist/
+
+# Local Go build cache used in sandboxed test runs
+.gocache/

@@ -16,14 +16,14 @@ func TestRenderFeatureShowsAgentStatuses(t *testing.T) {
 			Panes: []project.PaneStatus{
 				{
 					ConfigCmd:      "claude",
-					CurrentProcess: "claude",
+					CurrentProcess: "claude-native",
 					AgentName:      "claude",
 					IsAgent:        true,
 					Status:         project.AgentStatusRunning,
 				},
 				{
 					ConfigCmd:      "codex",
-					CurrentProcess: "codex",
+					CurrentProcess: "node",
 					AgentName:      "codex",
 					IsAgent:        true,
 					Status:         project.AgentStatusWaitingPermission,
@@ -41,6 +41,25 @@ func TestRenderFeatureShowsAgentStatuses(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Fatalf("renderFeature() missing %q in %q", want, got)
 		}
+	}
+}
+
+func TestFormatPanesFallsBackForUnknownProcesses(t *testing.T) {
+	got := formatPanes([]project.PaneStatus{
+		{
+			ConfigCmd:      "custom-agent",
+			CurrentProcess: "python",
+			AgentName:      "custom-agent",
+			IsAgent:        true,
+		},
+		{
+			ConfigCmd:      "shell",
+			CurrentProcess: "zsh",
+		},
+	})
+
+	if got != "[python, zsh]" {
+		t.Fatalf("formatPanes() = %q, want %q", got, "[python, zsh]")
 	}
 }
 

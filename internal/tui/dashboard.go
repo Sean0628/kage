@@ -119,13 +119,23 @@ func renderFeature(item listItem, selected bool, layout dashboardLayout) string 
 func formatPanes(panes []project.PaneStatus) string {
 	var names []string
 	for _, p := range panes {
-		name := p.CurrentProcess
-		if name == "" {
-			name = p.ConfigCmd
-		}
+		name := paneDisplayName(p)
 		names = append(names, name)
 	}
 	return "[" + strings.Join(names, ", ") + "]"
+}
+
+func paneDisplayName(p project.PaneStatus) string {
+	if p.IsAgent && (p.AgentName == "codex" || p.AgentName == "claude") {
+		return p.AgentName
+	}
+	if p.CurrentProcess != "" {
+		return p.CurrentProcess
+	}
+	if p.ConfigCmd != "" {
+		return p.ConfigCmd
+	}
+	return "unknown"
 }
 
 func renderColumnHeaders(layout dashboardLayout) string {
