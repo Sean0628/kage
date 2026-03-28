@@ -95,6 +95,9 @@ func renderFeature(item listItem, selected bool, layout dashboardLayout) string 
 		branch = normalStyle.Render(branch)
 	}
 	branchInfo := branch
+	if f.ID > 0 {
+		branchInfo = dimStyle.Render(fmt.Sprintf("#%d ", f.ID)) + branchInfo
+	}
 	if f.Description != "" {
 		branchInfo += dimStyle.Render("  " + f.Description)
 	}

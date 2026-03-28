@@ -211,6 +211,8 @@ Projects without a `layout` key inherit from `defaults`.
 
 When `coordinator: true` is set, kage splits the dashboard window and launches a coordinator agent with the kage MCP server pre-configured. The coordinator can orchestrate work across all feature agents — listing projects, sending messages, capturing output, and checking agent status.
 
+Each feature also gets a session-scoped global numeric ID in the dashboard and MCP listings. Coordinator calls can use that `id` instead of spelling out `project` and `branch`.
+
 ```yaml
 coordinator: true
 ```

@@ -125,6 +125,7 @@ func TestRenderFeatureShowsDescriptionInBranchColumn(t *testing.T) {
 	layout := computeDashboardLayout(140)
 	item := listItem{
 		feature: &project.Feature{
+			ID:          3,
 			Branch:      "feature/desc",
 			Description: "keep this visible",
 			Status:      project.StatusInactive,
@@ -136,5 +137,8 @@ func TestRenderFeatureShowsDescriptionInBranchColumn(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Fatalf("renderFeature() missing %q in %q", want, got)
 		}
+	}
+	if !strings.Contains(got, "#3") {
+		t.Fatalf("renderFeature() missing feature id in %q", got)
 	}
 }

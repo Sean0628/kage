@@ -19,6 +19,7 @@ const (
 
 // Feature represents a worktree/branch with its tmux state.
 type Feature struct {
+	ID          int
 	Branch      string
 	WorkDir     string
 	IsMain      bool
@@ -50,6 +51,7 @@ func LoadAll(cfg *config.Config, st *state.State) []ProjectState {
 		state := LoadProject(cfg, proj, st)
 		states = append(states, state)
 	}
+	assignFeatureIDs(states)
 	return states
 }
 
@@ -283,4 +285,14 @@ func firstLeafCmd(node *config.LayoutNode) string {
 // FeatureWindowName is exported for use by TUI.
 func FeatureWindowName(projectName, branch string) string {
 	return featureWindowName(projectName, branch)
+}
+
+func assignFeatureIDs(states []ProjectState) {
+	nextID := 1
+	for si := range states {
+		for fi := range states[si].Features {
+			states[si].Features[fi].ID = nextID
+			nextID++
+		}
+	}
 }
